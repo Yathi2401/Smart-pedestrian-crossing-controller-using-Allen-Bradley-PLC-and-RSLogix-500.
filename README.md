@@ -1,75 +1,65 @@
 # Smart Pedestrian Crossing Controller using Allen-Bradley PLC
 
-This project is a PLC-based smart pedestrian crossing controller developed using **RSLogix Micro Starter Lite**, **RSLogix Emulate 500**, and **RSLinx Classic**. The system is designed for a straight-road pedestrian crossing where vehicles normally have priority, and pedestrians can request a safe crossing using a push button.
+This project is a PLC-based smart pedestrian crossing controller developed using **RSLogix Micro Starter Lite**, **RSLogix Emulate 500**, and **RSLinx Classic**.
 
-The project demonstrates ladder logic programming, state-based PLC control, timer-based sequencing, latch/unlatch logic, fault handling, night mode operation, and output control for traffic lights, pedestrian signals, and buzzer indication.
+The system is designed for a straight-road pedestrian crossing where vehicles normally have priority. When a pedestrian presses the crossing button, the PLC stores the request and safely changes the traffic sequence before allowing the pedestrian to walk.
 
-## Project Objective
+## Project Overview
 
-The main objective of this project is to design and simulate a smart pedestrian crossing controller that can:
+The controller uses ladder logic to manage vehicle signals, pedestrian signals, request memory, timers, night mode, emergency mode, and fault handling.
 
-- Maintain normal vehicle traffic flow when there is no pedestrian request.
-- Accept pedestrian crossing requests using a push button.
-- Safely transition vehicle traffic from green to yellow and red before allowing pedestrians to walk.
-- Activate pedestrian walk indication and buzzer during the walk period.
-- Return automatically to normal vehicle green operation after the pedestrian crossing time is complete.
-- Provide night mode yellow flashing operation.
-- Provide fault/emergency handling so the system moves to a safer operating condition.
+The main operating sequence is:
 
-## Software and Tools Used
+1. Vehicle green is active during normal operation.
+2. Pedestrian presses the request button.
+3. PLC stores the pedestrian request.
+4. System waits until the minimum green time is complete.
+5. Vehicle signal changes from green to yellow.
+6. Vehicle signal changes to red after yellow timing.
+7. Red clearance delay is completed.
+8. Pedestrian walk light and buzzer turn ON.
+9. After the walk timer finishes, the system returns to vehicle green.
+
+## Features
+
+- Start and stop control using seal-in logic
+- Vehicle green, yellow, and red signal control
+- Pedestrian push button request
+- Pedestrian request latch memory
+- Pedestrian walk signal
+- Pedestrian stop signal
+- Pedestrian buzzer output
+- Request lamp output
+- Minimum green timer
+- Yellow timer
+- Red clearance timer
+- Walk timer
+- Night mode yellow flashing
+- Emergency mode handling
+- Fault detection and fault lamp indication
+- Timer reset logic for repeated operation
+- State-based control using internal PLC memory bits
+
+## Software Used
 
 - RSLogix Micro Starter Lite
 - RSLogix Emulate 500
 - RSLinx Classic
-- Allen-Bradley MicroLogix style ladder logic
-- Windows screen recording for demonstration
 
-## Main Features
+## PLC Logic Method
 
-- Start and stop control using seal-in logic
-- Vehicle green, yellow, and red light sequencing
-- Pedestrian request storage using latch logic
-- Pedestrian walk light output
-- Pedestrian stop light output
-- Pedestrian buzzer output
-- Request lamp output
-- Minimum vehicle green timing before accepting transition
-- Yellow clearance timing
-- Red clearance timing before pedestrian walk
-- Walk timer for pedestrian crossing duration
-- Night mode yellow flashing
-- Fault lamp output
-- Emergency mode override
-- Internal state control using B3 memory bits
-- Timer reset logic for reliable repeated cycles
+This project uses a **state-based ladder logic structure**. Each main stage of the crossing sequence is controlled using internal memory bits.
 
-## System Operation
+Main states:
 
-When the system is started, the controller enters the normal vehicle green state. In this state, vehicles are allowed to move, and pedestrians are shown the stop signal.
+| State | Description |
+|---|---|
+| Green State | Vehicles are allowed to move |
+| Yellow State | Vehicles receive warning before red |
+| Red Clearance State | Short safety delay before pedestrian walk |
+| Walk State | Pedestrian walk light and buzzer are active |
 
-If a pedestrian presses the request button while the vehicle green state is active, the controller stores the request using an internal latch bit. The system does not immediately stop the vehicles. Instead, it waits until the minimum green time is completed. This prevents sudden changes and makes the traffic sequence more realistic and safe.
-
-After the minimum green time is complete and a pedestrian request is available, the controller changes from vehicle green to vehicle yellow. The yellow state gives a warning to vehicles that the signal is about to change.
-
-After the yellow timer finishes, the controller enters the red clearance state. This short delay ensures that vehicles have time to stop before the pedestrian walk signal is activated.
-
-Once the red clearance timer is complete, the pedestrian walk state starts. During this state, the pedestrian walk light and buzzer are activated. The vehicle red light remains ON to stop traffic while pedestrians cross.
-
-After the walk timer finishes, the controller resets the walk state and pedestrian request. Then the system returns to vehicle green and waits for the next pedestrian request.
-
-## Safety and Special Modes
-
-### Emergency Mode
-
-Emergency mode is used to override the normal sequence. When emergency mode is active, the controller stops normal state transitions and activates the safer output condition. This is useful for demonstrating how a PLC system can respond to an emergency input.
-
-### Fault Mode
-
-Fault mode is included to show how the controller reacts when a fault is detected. In this project, the fault condition prevents normal pedestrian crossing operation and activates a fault indication. Since this is a straight-road pedestrian crossing, the design gives priority to keeping vehicle movement safe rather than forcing an unsafe pedestrian crossing during a fault.
-
-### Night Mode
-
-Night mode uses a flashing bit generated by timers. When night mode is active, the normal traffic sequence is disabled and the yellow vehicle light blinks. This represents a low-traffic operating mode commonly used during night-time or reduced traffic conditions.
+Latch and unlatch instructions are used to move between states. Timers are used to control the duration of each stage.
 
 ## PLC Address Summary
 
@@ -111,124 +101,69 @@ Night mode uses a flashing bit generated by timers. When night mode is active, t
 | T4:5 | Flash ON timer |
 | T4:6 | Flash OFF timer |
 
-## Ladder Logic Overview
+## Operating Modes
 
-The ladder program is built using a state-machine approach. Each traffic stage is represented by an internal memory bit. Only one main traffic state is active at a time during normal operation.
+### Normal Mode
 
-The main states are:
+In normal mode, the vehicle green light remains ON until a pedestrian request is received. After a valid request and minimum green timing, the system changes to yellow, then red clearance, then pedestrian walk.
 
-1. Green State
-2. Yellow State
-3. Red Clearance State
-4. Walk State
+### Night Mode
 
-Latch and unlatch instructions are used to move between states. Timers are used to control how long each state remains active. This structure makes the program easier to understand, test, and expand.
+Night mode disables the normal crossing sequence and makes the vehicle yellow light blink using a timer-generated flash bit.
 
-## Rung-Level Description
+### Emergency Mode
 
-### Start, Stop, Emergency, and Fault Logic
+Emergency mode stops the normal sequence and resets active states. This prevents the controller from continuing a normal crossing cycle during an emergency condition.
 
-The first section of the program controls the system run bit. The start push button turns ON the system run seal-in bit. The stop button, emergency mode, and fault condition can stop or reset the normal operating states.
+### Fault Mode
 
-### Mode Selection
+Fault mode activates a fault indication and prevents the normal pedestrian crossing sequence from continuing during a fault condition.
 
-Separate rungs are used to detect emergency mode and night mode. These modes affect the normal sequence and allow the controller to respond differently depending on the operating condition.
+## Documentation
 
-### State Reset Logic
+The ladder logic screenshots are included in the project PDF:
 
-When stop, emergency, or fault conditions occur, the controller unlatches active state bits such as green, yellow, red clearance, walk, pedestrian request, and minimum green active. This prevents the PLC from staying stuck in an old state after a mode change.
+```text
+Smart_Pedestrian_Crossing_PLC_Documentation.pdf
+```
 
-### Green State Logic
+## Project Files
 
-The controller starts in green state when the system is running and no other traffic state is active. In green state, the vehicle green output is ON and pedestrians are stopped.
+```text
+README.md
+Smart_Pedestrian_Crossing_PLC_Documentation.pdf
+Smart_Pedestrian_Crossing_PLC_Project.rss
+```
 
-### Pedestrian Request Logic
+## Learning Outcomes
 
-When the pedestrian button is pressed during green state, the request is stored using a latch bit. This allows the controller to remember the pedestrian request even after the button is released.
-
-### Yellow State Logic
-
-After a pedestrian request is stored and the minimum green time is complete, the controller changes from green state to yellow state. This warns vehicles before the red signal.
-
-### Red Clearance Logic
-
-After the yellow timer is complete, the controller enters red clearance state. This creates a short safety delay before pedestrians are allowed to walk.
-
-### Walk State Logic
-
-After red clearance is complete, the walk state is activated. The pedestrian walk output and buzzer are turned ON. When the walk timer finishes, the system returns to green state and resets the pedestrian request.
-
-### Output Logic
-
-The output rungs connect the internal states to real outputs such as vehicle green, vehicle yellow, vehicle red, pedestrian walk, pedestrian stop, pedestrian buzzer, request lamp, and fault lamp.
-
-### Flashing Logic
-
-The flashing logic uses ON and OFF timers to create a flash bit. This flash bit is used for night mode yellow blinking and fault indication behavior.
-
-## Screenshots
-
-The following screenshots show the completed ladder logic sections:
-
-- `screenshots/01-start-stop-emergency-night.png`
-- `screenshots/02-state-reset-logic.png`
-- `screenshots/03-green-and-request-logic.png`
-- `screenshots/04-yellow-transition.png`
-- `screenshots/05-yellow-and-red-clearance-timers.png`
-- `screenshots/06-red-clearance-to-walk.png`
-- `screenshots/07-walk-to-green-reset.png`
-- `screenshots/08-output-logic-vehicle-lights.png`
-- `screenshots/09-output-logic-pedestrian-signals.png`
-- `screenshots/10-fault-logic.png`
-- `screenshots/11-flash-timer-logic.png`
-
-## Demonstration Video
-
-A demonstration video is included to show the controller operation in RSLogix Emulate 500.
-
-The video demonstrates:
-
-- Starting the PLC controller
-- Normal vehicle green operation
-- Pedestrian request input
-- Transition from green to yellow
-- Vehicle red and pedestrian walk operation
-- Pedestrian buzzer activation
-- Return to normal green state
-- Night mode yellow blinking
-- Fault/emergency behavior
-
-## What I Learned
-
-Through this project, I improved my understanding of:
+Through this project, I practiced:
 
 - PLC ladder logic programming
-- Allen-Bradley addressing format
+- Allen-Bradley addressing
 - XIC and XIO instructions
-- OTE, OTL, and OTU output instructions
-- Timer ON delay operation
+- OTE, OTL, and OTU instructions
+- TON timer instructions
 - Counter instruction usage
-- Internal memory bits
-- State-based control systems
-- Traffic light control logic
-- Fault handling and safe mode design
-- PLC simulation and testing using RSLogix Emulate 500
+- Timer reset logic
+- Internal memory bit control
+- State-based automation logic
+- Traffic signal sequencing
+- Fault and emergency handling
+- PLC simulation using RSLogix Emulate 500
 
-## Future Improvements
+## Possible Program Improvements
 
-Possible future improvements include:
+Future improvements can be added inside the PLC program logic, such as:
 
-- Add final few-second flashing walk signal before walk time ends
-- Add a physical push button and LED prototype
-- Add HMI screen for live monitoring
-- Add pedestrian request count display
-- Add real-time fault diagnostics
-- Convert the simulation into a hardware demonstration
+- Add final-stage flashing for the pedestrian walk signal before walk time ends
+- Add pedestrian request count display logic
+- Add stuck push-button detection
+- Add lamp fault detection logic
+- Add more detailed fault reset conditions
+- Add separate timing values for day mode and night mode
+- Add maintenance mode logic
 
 ## Project Status
 
-The project ladder logic has been completed, verified, simulated, and documented with screenshots and a demonstration video.
-
-## Author
-
-Developed as a PLC automation portfolio project for internship preparation.
+The PLC ladder logic has been completed, verified, simulated, and documented.
