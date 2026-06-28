@@ -154,16 +154,19 @@ Through this project, I practiced:
 
 ## Possible Program Improvements
 
-Future improvements can be added inside the PLC program logic, such as:
+Future improvements that can be added to the PLC program include:
 
-- Add final-stage flashing for the pedestrian walk signal before walk time ends
-- Add pedestrian request count display logic
-- Add stuck push-button detection
-- Add lamp fault detection logic
-- Add more detailed fault reset conditions
-- Add separate timing values for day mode and night mode
-- Add maintenance mode logic
+- Extend the system from a single straight-road pedestrian crossing to a four-way junction traffic light controller.
+- Add separate signal states for north-south and east-west vehicle directions.
+- Add pedestrian crossing logic for all four sides of the junction.
+- Add turn signal control for right-turn or left-turn lanes.
+- Add vehicle sensor inputs to detect traffic waiting at each road.
+- Add priority control for emergency vehicles.
+- Add separate timing presets for peak hours, normal hours, and night mode.
+- Add conflict prevention logic so opposite or unsafe signals cannot turn ON together.
+- Add more detailed fault handling for each direction and each signal lamp.
+- Add HMI monitoring to show active junction state, timers, requests, and faults.
 
 ## Project Status
 
-The PLC ladder logic has been completed, verified, simulated, and documented.
+The project ladder logic has been developed and tested using RSLogix Micro Starter Lite and RSLogix Emulate 500. The controller successfully performs the main pedestrian crossing sequence, including vehicle signal control, pedestrian request handling, walk signal operation, buzzer indication, night mode flashing, and fault/emergency handling.
